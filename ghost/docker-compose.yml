@@ -1,0 +1,44 @@
+version: '3.1'
+
+services:
+
+  app:
+    image: ghost:latest
+    restart: always
+    ports:
+      - 2368:2368
+    environment:
+      database__client: mysql
+      database__connection__host: db
+      database__connection__user: ghost
+      database__connection__password: secretpw
+      database__connection__database: ghost
+      url: https://yourdomain.tld
+    volumes:
+      - ./app:/var/lib/ghost/content
+    links:
+      - db
+
+  db:
+    image: tobi312/rpi-mariadb
+    restart: always
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_USER: ghost
+      MYSQL_DATABASE: ghost
+      MYSQL_PASSWORD: secretpw
+    volumes:
+      - ./db:/var/lib/mysql  
+
+  nginx:
+    image: nginx:latest
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+        - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro
+        - ./letsencrypt:/etc/letsencrypt
+    links:
+      - app
+       
